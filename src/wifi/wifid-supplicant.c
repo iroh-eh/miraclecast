@@ -2607,6 +2607,24 @@ static int supplicant_timer_fn(sd_event_source *source,
 	return 0;
 }
 
+static char* get_file_content(const char *filename) {
+    FILE *f = fopen(filename, "rb");
+    if (!f) {
+        return "";
+    }
+
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+
+    char *content = malloc(fsize + 1);
+    fread(content, fsize, 1, f);
+    fclose(f);
+
+    content[fsize] = 0;
+    return content;
+}
+
 static int supplicant_write_config(struct supplicant *s)
 {
 	_shl_free_ char *path = NULL;
@@ -2621,6 +2639,15 @@ static int supplicant_write_config(struct supplicant *s)
 	f = fopen(path, "we");
 	if (!f)
 		return log_ERRNO();
+	
+	const char* homeDir = getenv("HOME");
+    char* content = "";
+
+    if (homeDir != NULL) {
+        char filename[100];
+        sprintf(filename, "%s/wpa_supplicant.conf", homeDir);
+        content = get_file_content(filename);
+    }
 
 	r = fprintf(f,
 		    "# Generated configuration - DO NOT EDIT!\n"
@@ -2633,12 +2660,14 @@ static int supplicant_write_config(struct supplicant *s)
 		    "p2p_cli_probe=1\n"
 		    "p2p_go_intent=0\n"
 		    "disable_scan_offload=1\n"
-		    "# End of configuration\n",
+		    "\n%s",
 		    s->l->friendly_name ?: "unknown",
 		    "1-0050F204-1",
 		    s->l->config_methods ?: "pbc",
 		    "p2p_device=1",
-		    "1");
+		    "1",
+			content
+		);
 	if (r < 0) {
 		r = log_ERRNO();
 		fclose(f);
