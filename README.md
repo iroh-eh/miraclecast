@@ -22,6 +22,10 @@ Steps to run:
 3. Run `sudo miracle-wifid --log-level trace --log-date-time` in a terminal.
 4. Run `sudo miracle-sinkctl -e run-vlc.sh --log-level trace --log-journal-level trace --log-date-time -- set-friendly-name VingMiracle` in a separate terminal.
 
+OR 
+
+1. Run `sudo systemctl start miracle-sink` to start
+2. Run `sudo systemctl stop miracle-wifid` to stop
 
 Now you should be able to cast your Windows 10/11 devices on Ving NUC.
 

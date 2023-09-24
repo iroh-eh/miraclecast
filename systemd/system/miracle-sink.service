@@ -1,12 +1,13 @@
 [Unit]
 Description=Miraclecast sink on default link
-Before=network.target
 Requires=miracle-wifid.service
+After=miracle-wifid.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/miracle-sinkctl --log-level debug --log-journal-level debug -- set-friendly-name VingMiracle
-ExecStopPost=-/usr/bin/systemctl stop miracle-wifid.service
+ExecStartPre=/usr/bin/sleep 5
+ExecStart=/usr/bin/miracle-sinkctl -e run-vlc.sh --log-level debug --log-journal-level debug -- set-friendly-name VingMiracle
+#ExecStopPost=-/usr/bin/systemctl stop miracle-wifid.service
 User=root
 
 [Install]
