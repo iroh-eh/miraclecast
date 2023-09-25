@@ -29,6 +29,12 @@ OR
 
 Now you should be able to cast your Windows 10/11 devices on Ving NUC.
 
+If you want to connect the NUC to a WiFi network while MiracleCast is running, then create config file using the following command as super user (`sudo su`)
+
+`wpa_passphrase <wifi_name_ssid> <password> | sudo tee ~/wpa_supplicant.conf`
+
+and restart MiracleCast.
+
 ## Requirements
 
 The MiracleCast projects requires the following software to be installed:
