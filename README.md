@@ -24,7 +24,7 @@ Steps to run:
 
 OR 
 
-1. Run `sudo systemctl start miracle-sink` to start
+1. Run `sudo systemctl start miracle-sink@<friendly-name>` to start
 2. Run `sudo systemctl stop miracle-wifid` to stop
 
 Now you should be able to cast your Windows 10/11 devices on Ving NUC.
