@@ -6,7 +6,8 @@ After=miracle-wifid.service
 [Service]
 Type=simple
 ExecStartPre=/usr/bin/sleep 5
-ExecStart=/usr/bin/miracle-sinkctl -e run-vlc.sh --log-level debug --log-journal-level debug -- set-friendly-name VingMiracle
+Environment="VING_FRIENDLY_NAME=VingMiracle"
+ExecStart=/usr/bin/miracle-sinkctl -e run-vlc.sh --log-level debug --log-journal-level debug -- set-friendly-name %I
 #ExecStopPost=-/usr/bin/systemctl stop miracle-wifid.service
 User=root
 

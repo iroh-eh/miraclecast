@@ -23,4 +23,4 @@ echo "-- Installing: /etc/systemd/system/miracle-wifid.service"
 cp systemd/system/miracle-wifid.service /etc/systemd/system/
 
 echo "-- Installing: /etc/systemd/system/miracle-sink.service"
-cp systemd/system/miracle-sink.service /etc/systemd/system/
+cp systemd/system/miracle-sink@.service /etc/systemd/system/
