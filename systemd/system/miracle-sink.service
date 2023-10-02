@@ -1,0 +1,16 @@
+[Unit]
+Description=Miraclecast sink on default link
+Requires=miracle-wifid.service
+After=miracle-wifid.service
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/sleep 5
+EnvironmentFile=/root/.miracle-sink.env
+ExecStart=/usr/bin/miracle-sinkctl -e run-vlc.sh --log-level debug --log-journal-level debug -- set-friendly-name ${ROOM_NAME}
+ExecStopPost=-/usr/bin/cp /run/miracle/wifi/wlp0s20f3-3.conf /root/
+User=root
+
+[Install]
+WantedBy=multi-user.target
+Alias=miracle-sink.service

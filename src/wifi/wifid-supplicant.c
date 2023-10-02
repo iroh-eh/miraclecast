@@ -2640,39 +2640,59 @@ static int supplicant_write_config(struct supplicant *s)
 	if (!f)
 		return log_ERRNO();
 	
+
 	const char* homeDir = getenv("HOME");
-    char* content = "";
 
-    if (homeDir != NULL) {
-        char filename[100];
-        sprintf(filename, "%s/wpa_supplicant.conf", homeDir);
-        content = get_file_content(filename);
-    }
+	char* content = NULL;
+	char* prev_conf = NULL;
+	char filename[50];
 
-	r = fprintf(f,
-		    "# Generated configuration - DO NOT EDIT!\n"
-		    "device_name=%s\n"
-		    "device_type=%s\n"
-		    "config_methods=%s\n"
-		    "driver_param=%s\n"
-		    "ap_scan=%s\n"
-		    "persistent_reconnect=1\n"
-		    "p2p_device_random_mac_addr=2\n"
-		    "p2p_cli_probe=1\n"
-		    "p2p_go_intent=0\n"
-		    "disable_scan_offload=1\n"
-		    "\n%s",
-		    s->l->friendly_name ?: "unknown",
-		    "1-0050F204-1",
-		    s->l->config_methods ?: "pbc",
-		    "p2p_device=1",
-		    "1",
-			content
-		);
+	if (homeDir != NULL) {
+		sprintf(filename, "%s/wpa_supplicant.conf", homeDir);
+		content = get_file_content(filename);
+	}
+
+	if(access("/root/wlp0s20f3-3.conf", F_OK) != -1) {
+		//file exist
+		prev_conf = get_file_content("/root/wlp0s20f3-3.conf");
+		r = fprintf(f, 
+			    	"%s\n"
+			    	"\n%s",
+			    	prev_conf,
+			    	content
+			  	);
+	} else {
+	    // file doesn't exist
+		r = fprintf(f,
+			    "# Generated configuration - DO NOT EDIT!\n"
+			    "device_name=%s\n"
+			    "device_type=%s\n"
+			    "config_methods=%s\n"
+			    "driver_param=%s\n"
+			    "ap_scan=%s\n"
+			    "persistent_reconnect=1\n"
+			    "update_config=1\n"
+			    "p2p_device_random_mac_addr=2\n"
+			    "p2p_cli_probe=1\n"
+			    "p2p_go_intent=0\n"
+			    "disable_scan_offload=1\n"
+			    "\n%s",
+			    s->l->friendly_name ?: "unknown",
+			    "1-0050F204-1",
+			    s->l->config_methods ?: "pbc",
+			    "p2p_device=1",
+			    "1",
+				content
+			);
+	}
 	if (r < 0) {
 		r = log_ERRNO();
 		fclose(f);
 		return r;
+	}
+
+	if (homeDir != NULL) {
+		remove(filename);
 	}
 
 	fclose(f);
