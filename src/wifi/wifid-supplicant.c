@@ -2657,6 +2657,7 @@ static int supplicant_write_config(struct supplicant *s)
 		    "driver_param=%s\n"
 		    "ap_scan=%s\n"
 		    "persistent_reconnect=1\n"
+		    "p2p_device_random_mac_addr=2\n"
 		    "p2p_cli_probe=1\n"
 		    "p2p_go_intent=0\n"
 		    "disable_scan_offload=1\n"
