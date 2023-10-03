@@ -24,8 +24,16 @@ Steps to run:
 
 OR 
 
-1. Run `sudo systemctl start miracle-sink@<friendly-name>` to start
+1. Run `sudo systemctl start miracle-sink@<friendly-name>` or `sudo systemctl start miracle-sink`to start
 2. Run `sudo systemctl stop miracle-wifid` to stop
+
+
+Steps for using audio through HDMI : 
+
+1. Get into the directory `cd hdmi-audio-fix`
+2. Run the script file as super user `sudo ./script.sh`
+3. Reboot
+4. Verify the HDMI cards being loaded `pacmd list-cards`. If you see no soundcards, please raise an issue.
 
 Now you should be able to cast your Windows 10/11 devices on Ving NUC.
 
@@ -33,7 +41,7 @@ If you want to connect the NUC to a WiFi network while MiracleCast is running, t
 
 `wpa_passphrase <wifi_name_ssid> <password> | sudo tee ~/wpa_supplicant.conf`
 
-and restart MiracleCast.
+Restart MiracleCast.
 
 ## Requirements
 
