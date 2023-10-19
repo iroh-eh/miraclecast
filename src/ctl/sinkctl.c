@@ -78,6 +78,7 @@ bool external_player;
 int rstp_port;
 int uibc_port;
 char* player;
+char* sourceip;
 GHashTable* protocol_extensions;
 
 unsigned int wfd_supported_res_cea  = 0x0001ffff;
@@ -418,6 +419,7 @@ static int sink_timeout_fn(sd_event_source *s, uint64_t usec, void *data)
 
 	stop_timeout(&sink_timeout);
 
+	cli_printf("running_peer->connected=%d, running_peer->remote_address=%s", running_peer->connected, running_peer->remote_address);
 	if (running_peer &&
 	    running_peer->connected &&
 	    ctl_sink_is_closed(sink)) {
@@ -853,7 +855,7 @@ static int ctl_interactive(char **argv, int argc)
 		goto error;
         sink->protocol_extensions = protocol_extensions;
 
-	r = ctl_wifi_fetch(wifi);
+	// r = ctl_wifi_fetch(wifi);
 	if (r < 0)
 		goto error;
 
@@ -861,6 +863,12 @@ static int ctl_interactive(char **argv, int argc)
 		r = cli_do(cli_cmds, argv, argc);
 		if (r == -EAGAIN)
 			cli_error("unknown operation %s", argv[0]);
+	}
+
+	cli_debug("Starting sink for source ip %s, brace for impact", sourceip);
+	r = ctl_sink_connect(sink, sourceip);
+	if (r < 0) {
+		cli_error("Failed to start sink");
 	}
 
 	r = cli_run();
@@ -904,6 +912,10 @@ static int ctl_main(int argc, char *argv[])
 
 static int parse_argv(int argc, char *argv[])
 {
+	cli_printf("Argc: %d", argc);
+	for (int i = 0; i < argc; ++i) {
+		cli_printf("%s", argv[i]);
+    }
 	enum {
 		ARG_VERSION = 0x100,
 		ARG_LOG_LEVEL,
@@ -934,6 +946,7 @@ static int parse_argv(int argc, char *argv[])
 		{ "port",		required_argument,	NULL,	'p' },
 		{ "uibc",		no_argument,		NULL,	ARG_UIBC },
 		{ "external-player",		required_argument,		NULL,	'e' },
+		{ "source-ip",		required_argument,		NULL,	's' },
 		{}
 	};
 	int c;
@@ -943,7 +956,8 @@ static int parse_argv(int argc, char *argv[])
    external_player = false;
 	rstp_port = DEFAULT_RSTP_PORT;
 
-	while ((c = getopt_long(argc, argv, "he:p:", options, NULL)) >= 0) {
+	while ((c = getopt_long(argc, argv, "he:p:s:", options, NULL)) >= 0) {
+		cli_printf("c = %c", c);
 		switch (c) {
 		case 'h':
 		   cli_fn_help();
@@ -988,7 +1002,12 @@ static int parse_argv(int argc, char *argv[])
 			break;
 		case 'e':
 			external_player = true;
+			cli_debug("External player");
 			player = optarg;
+			break;
+		case 's':
+			sourceip = optarg;
+			cli_debug("Got source ip %s", sourceip);
 			break;
 		case ARG_UIBC:
 			uibc_option = true;
@@ -1003,6 +1022,7 @@ static int parse_argv(int argc, char *argv[])
 
 int main(int argc, char **argv)
 {
+
 	int r;
    bool free_argv = false;
 

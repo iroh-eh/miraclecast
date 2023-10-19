@@ -1229,6 +1229,8 @@ static void supplicant_event_p2p_group_started(struct supplicant *s,
 	bool is_go;
 	int r;
 
+	log_debug("P2P group started event was called");
+
 	r = wpas_message_dict_read(ev, "go_dev_addr", 's', &mac);
 	if (r < 0) {
 		log_debug("no go_dev_addr in P2P-GROUP-STARTED: %s",
@@ -2430,6 +2432,8 @@ static void supplicant_run(struct supplicant *s, const char *binary)
 		argv[i++] = "-qq";
 	else if (arg_wpa_loglevel < LOG_NOTICE)
 		argv[i++] = "-q";
+
+	argv[i++] = "-u";
 
 	argv[i++] = "-c";
 	argv[i++] = s->conf_path;
