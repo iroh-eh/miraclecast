@@ -5,6 +5,8 @@ apt install gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-tools -y
 
 apt install vlc -y
 
+apt install tcpdump
+
 rm -rf build/
 mkdir build
 cd build
@@ -16,6 +18,9 @@ cd ..
 echo "-- Installing: /root/.miraclecast"
 cp res/.miraclecast /root/
 
+echo "-- Installing: /root/lazycast"
+cp lazycast/* /root/
+
 echo "-- Installing: /usr/bin/run-vlc.sh"
 cp res/run-vlc.sh /usr/bin/
 
@@ -23,4 +28,5 @@ echo "-- Installing: /etc/systemd/system/miracle-wifid.service"
 cp systemd/system/miracle-wifid.service /etc/systemd/system/
 
 echo "-- Installing: /etc/systemd/system/miracle-sink.service"
-cp systemd/system/miracle-sink@.service /etc/systemd/system/
+cp systemd/system/miracle-sink.service /etc/systemd/system/
+

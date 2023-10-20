@@ -1,19 +1,4 @@
 #!/usr/bin/env python3
-"""
-	This software is part of lazycast, a simple wireless display receiver for Raspberry Pi
-	Copyright (C) 2020 Hsun-Wei Cho
-	Using any part of the code in commercial products is prohibited.
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
 from subprocess import STDOUT, check_output
 import socket
 from time import sleep
@@ -22,6 +7,7 @@ import uuid
 import subprocess
 import select
 import traceback
+import sys
 
 commands = {}
 commands[1] = 'SOURCE_READY'
@@ -67,17 +53,19 @@ def check_rtp() :
 		try : 
 		#	process = subprocess.run(['tcpdump', '-U', '-i', 'eno1', '-s', '100', 'port', '7236'], capture_output=True, timeout=5)
 		#	output = check_output('tcpdump -i eno1 -s 1500 port 7236', stderr=STDOUT, timeout=5)
-			output = check_output(['sh', './tcpscript.sh'], stderr=STDOUT, timeout=7)
+			output = check_output(['sh', '/root/tcpscript.sh'], stderr=STDOUT, timeout=7)
 		except Exception as e:
 			print (f'output :  exception {e}')
 
-		b = os.path.getsize('/home/letsving/lazycast/filee')
+		b = os.path.getsize('/root/filee')
 		print (f'size of the file is in bytes {b}')
-		os.remove('filee')
+		os.remove('/root/filee')
 		return b > 0
 	
 
-hostname = 'lazyletsving'
+print ("project argv", sys.argv)
+hostname = sys.argv[1]
+
 publish_avahi_service(hostname, uuidstr)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -132,7 +120,7 @@ def main():
 			if messagetype == 'SOURCE_READY':
 				print('Source is ready...')
 				process = subprocess.run(['avahi-browse', '-tp', '_display._tcp'], capture_output=True)
-				os.system(f'sudo /usr/bin/miracle-sinkctl -s {sourceip} -e run-vlc.sh --log-level debug --log-journal-level debug -- set-friendly-name lazyletsving &')
+				os.system(f'sudo /usr/bin/miracle-sinkctl -s {sourceip} -e run-vlc.sh --log-level debug --log-journal-level debug -- set-friendly-name {hostname} &')
 				start_checking = True
 				#os.system('./d2.py '+sourceip+' &')
 		

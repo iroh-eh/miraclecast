@@ -1,22 +1,5 @@
 #!/usr/bin/env python3
-"""
-	This software is part of lazycast, a simple wireless display receiver for Raspberry Pi
-	Copyright (C) 2020 Hsun-Wei Cho
-	Modified from the p2p_group_add example of wpa_supplicant
-	# Tests p2p_group_add
-	######### MAY NEED TO RUN AS SUDO #############
-	Using any part of the code in commercial products is prohibited.
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
 import dbus
 import sys, os
 import time
@@ -31,7 +14,8 @@ from threading import Event
 
 ##################### Settings #####################
 #hostname = socket.gethostname() 
-hostname = 'lazyletsving'
+print (sys.argv)
+hostname = sys.argv[1]
 # If ./mice.py and ./project.py do not run on the same machine, 
 # hostname and ipstr should be the those of the machine running ./project.py
 ipstr = ''
@@ -205,5 +189,7 @@ if __name__ == "__main__":
 	if concurrent == 1:
 		os.system('./all.sh &')
 
-	exec(open('newproject.py').read())
+	cmd = '/root/newproject.py ' + '\'' + hostname + '\'';
+	print (f'cmd {cmd}')
+	os.system(cmd)
 
