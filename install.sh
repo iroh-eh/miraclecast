@@ -7,6 +7,8 @@ apt install vlc -y
 
 apt install tcpdump
 
+apt install avahi-utils
+
 rm -rf build/
 mkdir build
 cd build
