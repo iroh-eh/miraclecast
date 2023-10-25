@@ -8,6 +8,7 @@ import subprocess
 import select
 import traceback
 import sys
+import threading
 
 commands = {}
 commands[1] = 'SOURCE_READY'
@@ -49,17 +50,19 @@ def publish_avahi_service(hostname, uuid):
 	else:
 		print('Avahi service is already running')
 
-def check_rtp() : 
+def check_rtp(port) : 
+		file_name = f'/root/file_{port}'
 		try : 
 		#	process = subprocess.run(['tcpdump', '-U', '-i', 'eno1', '-s', '100', 'port', '7236'], capture_output=True, timeout=5)
 		#	output = check_output('tcpdump -i eno1 -s 1500 port 7236', stderr=STDOUT, timeout=5)
-			output = check_output(['sh', '/root/tcpscript.sh'], stderr=STDOUT, timeout=7)
+			port_str = f'{port}'
+			output = check_output(['sh', '/root/tcpscript.sh', port_str, file_name], stderr=STDOUT, timeout=7)
 		except Exception as e:
 			print (f'output :  exception {e}')
 
-		b = os.path.getsize('/root/filee')
+		b = os.path.getsize(file_name)
 		print (f'size of the file is in bytes {b}')
-		os.remove('/root/filee')
+		os.remove(file_name)
 		return b > 0
 	
 
@@ -75,64 +78,74 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 sock.listen(1)
 
+def run_session (conn, sourceip, port) : 
+	while True:
+		
+		conn.settimeout(5)
+		try : 
+			data = conn.recv(1024)
+		except Exception as e:
+			print(f'recv timedout')
+			if check_rtp(port) : 
+				print ('stream is comming')
+			else :
+				print ('stream is stopped')
+				print('Source is diconnecting...')
+				os.system(f'pkill -f cvlc.*{port}')
+				os.system(f'pkill -f miracle-sink.*-p\ {port}')
+				break
+			continue
+			
+		# print data
+		print(data.hex())
+
+		if len(data) == 0:
+			break
+
+		
+		data = data.hex()
+		size = int(data[0:4],16)
+		version = int(data[4:6])
+		command = int(data[6:8])
+
+		print(size,version,command)
+		
+		messagetype = commands[command]
+		print(messagetype)
+
+		if messagetype == 'SOURCE_READY':
+			print('Source is ready...')
+			process = subprocess.run(['avahi-browse', '-tp', '_display._tcp'], capture_output=True)
+			os.system(f'sudo /usr/bin/miracle-sinkctl -p {port} -s {sourceip} -e run-vlc.sh --log-level debug --log-journal-level debug -- set-friendly-name {hostname} &')
+			#os.system('./d2.py '+sourceip+' &')
+
+		if messagetype == 'STOP_PROJECTION':
+			print('Source is diconnecting...')
+			os.system(f'pkill -f cvlc.*{port}')
+			os.system(f'pkill -f miracle-sink.*-p\ {port}')
+			break
+			
+				
+
+	conn.close()
+
 
 def main():
+	port = 7236
+	threads = []
+
 	while True: 
-		start_checking = False
 		(conn, addr) = sock.accept()
 		print('Connected by', addr)
 		sourceip = addr[0]
-		while True:
-		
-			print(f'came here with bool {start_checking}')
-			conn.settimeout(5)
-			try : 
-				data = conn.recv(1024)
-			except Exception as e:
-				print(f'recv timedout')
-				if check_rtp() : 
-					print ('stream is comming')
-				else :
-					print ('stream is stopped')
-					print('Source is diconnecting...')
-					os.system(f'sudo pkill vlc')
-					os.system(f'sudo pkill miracle-sink')
-					break
-				continue
-				
-			# print data
-			print(data.hex())
-		
-			if len(data) == 0:
-				break
-		
-			
-			data = data.hex()
-			size = int(data[0:4],16)
-			version = int(data[4:6])
-			command = int(data[6:8])
-		
-			print(size,version,command)
-			
-			messagetype = commands[command]
-			print(messagetype)
-		
-			if messagetype == 'SOURCE_READY':
-				print('Source is ready...')
-				process = subprocess.run(['avahi-browse', '-tp', '_display._tcp'], capture_output=True)
-				os.system(f'sudo /usr/bin/miracle-sinkctl -s {sourceip} -e run-vlc.sh --log-level debug --log-journal-level debug -- set-friendly-name {hostname} &')
-				start_checking = True
-				#os.system('./d2.py '+sourceip+' &')
-		
-			if messagetype == 'STOP_PROJECTION':
-				print('Source is diconnecting...')
-				os.system(f'sudo pkill vlc')
-				os.system(f'sudo pkill miracle-sink')
-				break
-			
-			
+		t1 = threading.Thread(target=run_session, args=(conn, sourceip, port,))
+		port += 1
+		t1.start()
+		threads.append(t1)
 
-		conn.close()
+	for thread in threads : 
+		thread.join()
+
 	sock.close()
 
 try:

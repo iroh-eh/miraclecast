@@ -189,7 +189,7 @@ if __name__ == "__main__":
 	if concurrent == 1:
 		os.system('./all.sh &')
 
-	cmd = '/root/newproject.py ' + '\'' + hostname + '\'';
+	cmd = 'sudo python3 /root/newproject.py ' + '\'' + hostname + '\'';
 	print (f'cmd {cmd}')
 	os.system(cmd)
 

@@ -586,8 +586,9 @@ static void kill_gst(void)
 		return;
 
 	cli_debug("killing vlc [start]");
-	char *command = "pgrep vlc";
-	cli_debug("killing vlc [using command : pgrep vlc]");
+	char command[64];
+	sprintf(command, "sudo pkill -f cvlc.*%d", rstp_port);
+	cli_debug("killing vlc [using command : pgrep vlc] %s", command);
 	FILE* file = popen(command, "r");
 	cli_debug("killing vlc  [opening file]");
 
