@@ -552,6 +552,11 @@ void launch_player(struct ctl_sink *s) {
       strcat(player_command, " ");
       strcat(player_command, argv[i++]);
    }
+
+   log_debug("Move to workspace 2");
+   cli_debug("Move to workspace 2");
+   system("DISPLAY=:0 su -c \"i3-msg 'workspace 2; splith'\" letsving");
+
    log_debug("player command: %s", player_command);
    if (execvpe(argv[0], argv, environ) < 0) {
       cli_debug("stream player failed (%d): %m", errno);
@@ -577,6 +582,17 @@ void launch_uibc_daemon(int port) {
 	execvpe(argv[0], argv, environ);
 }
 
+static int get_vlcs_running(void) {
+	char *command = "pgrep vlc | wc -l";
+	FILE* file = popen(command, "r");
+	int vlcs_running = 0;
+	fscanf(file, "%d", &vlcs_running);
+	pclose(file);
+	cli_debug("%d vlcs running", vlcs_running);
+
+	return vlcs_running >> 1;
+}
+
 static void kill_gst(void)
 {
 	char *argv[64];
@@ -584,6 +600,12 @@ static void kill_gst(void)
 
 	if (sink_pid <= 0)
 		return;
+	
+	
+	if (get_vlcs_running() == 1) {
+	 	cli_debug("Last vlc, moving to workspace 1");
+		system("DISPLAY=:0 su -c \"i3-msg 'workspace 1'\" letsving");		
+	}
 
 	cli_debug("killing vlc [start]");
 	char command[64];
