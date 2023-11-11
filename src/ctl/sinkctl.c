@@ -85,6 +85,78 @@ unsigned int wfd_supported_res_cea  = 0x0001ffff;
 unsigned int wfd_supported_res_vesa = 0x1fffffff;
 unsigned int wfd_supported_res_hh   = 0x00001fff;
 
+/*
+ * windowing utilities
+ */
+
+static int get_vlcs_running(void) {
+	char *command = "pgrep vlc | wc -l";
+	FILE* file = popen(command, "r");
+	int vlcs_running = 0;
+	fscanf(file, "%d", &vlcs_running);
+	pclose(file);
+	cli_debug("%d vlcs running", vlcs_running);
+
+	return vlcs_running >> 1;
+}
+
+static bool airplay_running() {
+    char *command = "netstat -ulp  | grep letsving | wc -l";
+    FILE* file = popen(command, "r");
+    int airplay_screening = 0;
+    fscanf(file, "%d", &airplay_screening);
+    pclose(file);
+    //logger_log(raop_rtp_mirror->logger, LOGGER_INFO, "%d vlcs running", airplay_screening);
+	cli_debug("%d airplay screening : ", airplay_screening);
+    return airplay_screening > 0;
+}
+
+static void 
+set_i3_end() {
+    int screen_count = get_vlcs_running();
+    if (airplay_running()) {
+        screen_count++;
+    }   
+
+	if (screen_count <= 1) {
+		cli_debug("0 screen with current screen active !!");
+        system("DISPLAY=:0 su -c \"i3-msg 'workspace 1;'\" letsving");
+	} else {
+        system("DISPLAY=:0 su -c \"i3-msg 'workspace 2; layout toggle split'\" letsving");
+	}
+}
+
+static void 
+set_i3() {
+    int screen_count = get_vlcs_running();
+    if (airplay_running()) {
+        screen_count++;
+    }   
+
+    if (screen_count == 0) {
+        //ours will be first window in workspace 2
+        //system("i3-msg 'workspace 2'");
+        system("DISPLAY=:0 su -c \"i3-msg 'workspace2'\" letsving");
+        //onle singly window to be split horizontally and in focus
+    } else if (screen_count == 1) {
+        //ours will be second window in workspace 2
+        //system("i3-msg 'workspace 2; splitv'");
+        system("DISPLAY=:0 su -c \"i3-msg 'workspace2; splith'\" letsving");
+        //two window split horizontally, recent window focused to be split vertical
+    } else if (screen_count  == 2) {
+        //our will be third windows in workspace 2
+        //system("i3-msg 'workspace2; splith'");
+        system("DISPLAY=:0 su -c \"i3-msg 'workspace2; splitt'\" letsving");
+    } else if (screen_count == 3) {
+        //ours will be fourth window in workspace 2
+        system("DISPLAY=:0 su -c \"i3-msg 'workspace2; focus left; focus up; splitt'\" letsving");
+    } else {
+        //system("i3-msg 'workspace2; fullscreen toggle");
+        system("DISPLAY=:0 su -c \"i3-msg 'workspace2; fullscreen toggle'\" letsving");
+    }   
+    
+}
+
 struct ctl_wifi *get_wifi()
 {
         return wifi;
@@ -555,7 +627,8 @@ void launch_player(struct ctl_sink *s) {
 
    log_debug("Move to workspace 2");
    cli_debug("Move to workspace 2");
-   system("DISPLAY=:0 su -c \"i3-msg 'workspace 2; splith'\" letsving");
+   set_i3();
+   //system("DISPLAY=:0 su -c \"i3-msg 'workspace 2; splith'\" letsving");
 
    log_debug("player command: %s", player_command);
    if (execvpe(argv[0], argv, environ) < 0) {
@@ -582,16 +655,7 @@ void launch_uibc_daemon(int port) {
 	execvpe(argv[0], argv, environ);
 }
 
-static int get_vlcs_running(void) {
-	char *command = "pgrep vlc | wc -l";
-	FILE* file = popen(command, "r");
-	int vlcs_running = 0;
-	fscanf(file, "%d", &vlcs_running);
-	pclose(file);
-	cli_debug("%d vlcs running", vlcs_running);
 
-	return vlcs_running >> 1;
-}
 
 static void kill_gst(void)
 {
@@ -601,10 +665,10 @@ static void kill_gst(void)
 	if (sink_pid <= 0)
 		return;
 	
-	
+	set_i3_end();
 	if (get_vlcs_running() == 1) {
-	 	cli_debug("Last vlc, moving to workspace 1");
-		system("DISPLAY=:0 su -c \"i3-msg 'workspace 1'\" letsving");		
+	 	//cli_debug("Last vlc, moving to workspace 1");
+		//system("DISPLAY=:0 su -c \"i3-msg 'workspace 1'\" letsving");		
 	}
 
 	cli_debug("killing vlc [start]");
