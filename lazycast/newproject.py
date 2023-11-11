@@ -9,6 +9,8 @@ import select
 import traceback
 import sys
 import threading
+import time
+import datetime
 
 commands = {}
 commands[1] = 'SOURCE_READY'
@@ -63,6 +65,7 @@ def check_rtp(port) :
 		b = os.path.getsize(file_name)
 		print (f'size of the file is in bytes {b}')
 		os.remove(file_name)
+		os.system(f'pkill -f tcpdump.*port\ {port}')
 		return b > 0
 	
 
@@ -79,6 +82,7 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.listen(1)
 
 def run_session (conn, sourceip, port) : 
+	start_time = datetime.datetime.now()
 	while True:
 		
 		conn.settimeout(5)
@@ -126,6 +130,11 @@ def run_session (conn, sourceip, port) :
 			break
 			
 				
+
+	end_time = datetime.datetime.now()
+	f = open("/home/letsving/.screencast.log", 'a')	
+	f.write(f"{start_time},{end_time},miracast\n")
+	f.close();
 
 	conn.close()
 
