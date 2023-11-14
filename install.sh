@@ -17,6 +17,8 @@ make
 make install
 cd ..
 
+echo " -- Installing: /root/tcpscript"
+cp res/tcpscript.sh /root/
 echo "-- Installing: /root/.miraclecast"
 cp res/.miraclecast /root/
 
